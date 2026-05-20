@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="Assets/ringkes_macos_icon.png" width="150" alt="RINGKES Logo">
+  <img src="ringkes.png" width="150" alt="RINGKES Logo">
 </p>
 
 # RINGKES 🖥️📦
