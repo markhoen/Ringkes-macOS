@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="Assets/ringkes_macos_icon.png" width="150" alt="RINGKES Logo">
+</p>
+
 # RINGKES 🖥️📦
 
 **RINGKES** adalah aplikasi desktop berbasis macOS yang dirancang khusus untuk mengompresi file PDF secara cepat, aman, dan efisien. Diambil dari bahasa Jawa yang berarti ringkas, padat, dan praktis, aplikasi ini hadir sebagai solusi untuk meringankan beban ruang digital Anda tanpa mengurangi esensi penting di dalamnya.
