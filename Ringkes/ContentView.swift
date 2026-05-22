@@ -1,12 +1,20 @@
+
 import SwiftUI
 import UniformTypeIdentifiers
 import AppKit
+import PDFKit
 
 struct PDFItem: Identifiable {
+
     let id = UUID()
     let url: URL
+    
+    var originalURL: URL? = nil
+
     var progress: Double = 0
     var status: String = "Waiting"
+
+    var isTemporary: Bool = false
 }
 
 struct ContentView: View {
@@ -94,13 +102,18 @@ struct ContentView: View {
                             style: StrokeStyle(lineWidth: 3, dash: [10]))
                     .frame(height: 120)
                     .overlay(
-                        VStack(spacing: 10) {
+                        VStack(spacing: 8) {
                             
                             Image(systemName: "arrow.down.doc")
                                 .font(.system(size: 40))
                             
-                            Text("Drag & Drop Multiple PDF")
+                            Text("Drag & Drop PDF or Images")
                                 .font(.title3)
+                            
+                            Text("PDF COMPRESS • IMAGE TO PDF")
+                                .font(.caption2)
+                                .tracking(1)
+                                .foregroundStyle(.secondary)
                         }
                     )
                     .padding(.horizontal)
@@ -173,25 +186,72 @@ struct ContentView: View {
 
         for provider in providers {
 
-            provider.loadItem(forTypeIdentifier: UTType.fileURL.identifier,
-                              options: nil) { item, error in
+            provider.loadItem(
+                forTypeIdentifier: UTType.fileURL.identifier,
+                options: nil
+            ) { item, error in
 
                 guard let data = item as? Data,
-                      let url = URL(dataRepresentation: data,
-                                    relativeTo: nil) else {
+                      let url = URL(
+                        dataRepresentation: data,
+                        relativeTo: nil
+                      ) else {
                     return
                 }
 
                 DispatchQueue.main.async {
 
-                    pdfs.append(PDFItem(url: url))
+                    if isPDFFile(url) {
 
-                    let index = pdfs.count - 1
+                        pdfs.append(PDFItem(url: url))
 
-                    processPDF(at: index)
+                        let index = pdfs.count - 1
+
+                        processPDF(at: index)
+
+                    } else if isImageFile(url) {
+
+                        convertImageToPDF(imageURL: url)
+
+                    } else {
+
+                        print("Unsupported file:", url)
+                    }
                 }
             }
         }
+    }
+    
+    func convertImageToPDF(imageURL: URL) {
+
+        guard let image = NSImage(contentsOf: imageURL),
+              let page = PDFPage(image: image) else {
+            return
+        }
+
+        let pdfDocument = PDFDocument()
+
+        pdfDocument.insert(page, at: 0)
+
+        let tempPDFURL = imageURL
+            .deletingLastPathComponent()
+            .appendingPathComponent(UUID().uuidString + ".pdf")
+
+        pdfDocument.write(to: tempPDFURL)
+
+        pdfs.append(
+            PDFItem(
+                url: tempPDFURL,
+                originalURL: imageURL,
+                progress: 0,
+                status: "Converting...",
+                isTemporary: true
+            )
+        )
+
+        let index = pdfs.count - 1
+
+        processPDF(at: index)
     }
 
     func processPDF(at index: Int) {
@@ -213,13 +273,22 @@ struct ContentView: View {
             }
 
             let inputURL = pdfs[index].url
+            
+            let originalAttributes =
+                try? FileManager.default.attributesOfItem(
+                    atPath: inputURL.path
+                )
+
+            let originalModifiedDate =
+                originalAttributes?[.modificationDate] as? Date
 
             let outputURL: URL
             let finalURL: URL
 
             if overwriteExisting {
 
-                finalURL = inputURL
+                finalURL =
+                    pdfs[index].originalURL ?? inputURL
 
                 outputURL = inputURL
                     .deletingLastPathComponent()
@@ -227,7 +296,10 @@ struct ContentView: View {
 
             } else {
 
-                finalURL = inputURL
+                let namingSource =
+                    pdfs[index].originalURL ?? inputURL
+
+                finalURL = namingSource
                     .deletingPathExtension()
                     .appendingPathExtension("ringkes.pdf")
 
@@ -322,9 +394,25 @@ struct ContentView: View {
 
             if task.terminationStatus == 0 {
 
+                if pdfs[index].isTemporary {
+
+                    DispatchQueue.global().asyncAfter(deadline: .now() + 1) {
+
+                        try? FileManager.default.removeItem(at: inputURL)
+                    }
+
+                } else if let modifiedDate = originalModifiedDate {
+
+                    try? FileManager.default.setAttributes(
+                        [.modificationDate: modifiedDate],
+                        ofItemAtPath: finalURL.path
+                    )
+                }
+
                 DispatchQueue.main.async {
                     pdfs[index].progress = 1.0
-                    pdfs[index].status = "Finished → \(finalURL.lastPathComponent)"
+                    pdfs[index].status =
+                        "Finished → \(finalURL.lastPathComponent)"
                 }
 
             } else {
@@ -381,7 +469,22 @@ struct ContentView: View {
     }
 }
 
+func isImageFile(_ url: URL) -> Bool {
+
+    guard let type =
+        UTType(filenameExtension: url.pathExtension)
+    else {
+        return false
+    }
+
+    return type.conforms(to: .image)
+}
+
+func isPDFFile(_ url: URL) -> Bool {
+
+    url.pathExtension.lowercased() == "pdf"
+}
+
 #Preview {
     ContentView()
 }
-
