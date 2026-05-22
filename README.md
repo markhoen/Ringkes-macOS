@@ -4,7 +4,7 @@
 
 # RINGKES 🖥️📦
 
-**RINGKES** adalah aplikasi desktop yang bisa digunakan di macOS maupun Windows yang dirancang khusus untuk mengompresi file PDF secara cepat, aman, dan efisien. Diambil dari bahasa Jawa yang berarti ringkas, padat, dan praktis, aplikasi ini hadir sebagai solusi untuk meringankan beban ruang digital Anda tanpa mengurangi esensi penting di dalamnya.
+**RINGKES** adalah aplikasi desktop yang bisa digunakan di macOS yang dirancang khusus untuk mengompresi file PDF secara cepat, aman, dan efisien. Diambil dari bahasa Jawa yang berarti ringkas, padat, dan praktis, aplikasi ini hadir sebagai solusi untuk meringankan beban ruang digital Anda tanpa mengurangi esensi penting di dalamnya.
 
 > **"Cilik Ukurane, Gede Manfaate."**
 > *(Kecil ukurannya, besar manfaatnya).* > Sebuah filosofi luhur Jawa yang melandasi pembuatan aplikasi ini—membuktikan bahwa efisiensi dan ukuran yang ringkas justru menyimpan kekuatan dan kegunaan yang luar biasa.
@@ -34,22 +34,16 @@ Ikon aplikasi RINGKES memadukan elemen **Blangkon Jawa** dan **Tumpukan Dokumen*
 * **Bahasa/Framework:** SwiftUI
 * **Library Kompresi:** Ghostscript
 
-* ## 🛠️ Windows
-* **Platform:** Windows
-* **Bahasa/Framework:** .Net, C
-* **Library Kompresi:** Ghostscript
-
 ---
 
 ## 🚀 Cara Instalasi & Penggunaan
 
 ### Kebutuhan Sistem
 * macOS 14.0 (Sonoma) atau versi yang lebih baru.
-* Windows 10 atau yang lebih baru.
 
 ### Cara Penggunaan
 1. Unduh rilis terbaru aplikasi di halaman **Releases**.
-2. Buka berkas `.dmg` atau jalankan aplikasi **RINGKES** (macOS), buka berkas `.zip` dan jalankan setup (Windows) .
+2. Buka berkas `.dmg` atau jalankan aplikasi **RINGKES**.
 3. Tarik (*drag*) file PDF yang ingin Anda kompres, lalu letakkan (*drop*) ke dalam jendela aplikasi.
 4. Tunggu beberapa saat, dan file PDF Anda yang baru yang lebih ringkas siap digunakan!
 
