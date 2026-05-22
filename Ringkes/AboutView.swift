@@ -29,7 +29,7 @@ struct AboutView: View {
                     .font(.headline)
                     .foregroundStyle(.secondary)
 
-                Text("Version 1.0")
+                Text("Version 1.1.0")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
                     .padding(.top, 4)
