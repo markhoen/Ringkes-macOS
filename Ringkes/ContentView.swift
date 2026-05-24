@@ -273,7 +273,7 @@ struct ContentView: View {
             }
 
             let inputURL = pdfs[index].url
-            
+
             let originalAttributes =
                 try? FileManager.default.attributesOfItem(
                     atPath: inputURL.path
@@ -282,22 +282,37 @@ struct ContentView: View {
             let originalModifiedDate =
                 originalAttributes?[.modificationDate] as? Date
 
+            // =========================================
+            // DETECT REAL PDF OR IMAGE CONVERSION
+            // =========================================
+
+            let isRealPDF =
+                pdfs[index].originalURL == nil
+
+            let allowOverwrite =
+                overwriteExisting && isRealPDF
+
+            let namingSource =
+                pdfs[index].originalURL ?? inputURL
+
             let outputURL: URL
             let finalURL: URL
 
-            if overwriteExisting {
+            // =========================================
+            // OVERWRITE ONLY FOR REAL PDF
+            // =========================================
 
-                finalURL =
-                    pdfs[index].originalURL ?? inputURL
+            if allowOverwrite {
+
+                finalURL = inputURL
 
                 outputURL = inputURL
                     .deletingLastPathComponent()
-                    .appendingPathComponent(UUID().uuidString + ".pdf")
+                    .appendingPathComponent(
+                        UUID().uuidString + ".pdf"
+                    )
 
             } else {
-
-                let namingSource =
-                    pdfs[index].originalURL ?? inputURL
 
                 finalURL = namingSource
                     .deletingPathExtension()
@@ -308,10 +323,16 @@ struct ContentView: View {
 
             let task = Process()
 
-            guard let gsPath = Bundle.main.path(forResource: "gs", ofType: nil) else {
+            guard let gsPath =
+                Bundle.main.path(
+                    forResource: "gs",
+                    ofType: nil
+                ) else {
 
                 DispatchQueue.main.async {
-                    pdfs[index].status = "Ghostscript not found"
+                    pdfs[index].status =
+                        "Ghostscript not found"
+
                     pdfs[index].progress = 0
                 }
 
@@ -332,11 +353,11 @@ struct ContentView: View {
                 "-sOutputFile=\(outputURL.path)",
                 inputURL.path
             ]
-            
+
             task.standardOutput = Pipe()
-            task.standardError = Pipe()
-            
+
             let errorPipe = Pipe()
+
             task.standardError = errorPipe
 
             DispatchQueue.main.async {
@@ -346,14 +367,19 @@ struct ContentView: View {
             do {
 
                 try task.run()
-                print("Using GS:", actualGhostscriptPath)
+
+                print("Using GS:",
+                      actualGhostscriptPath)
 
             } catch {
 
                 print("REAL ERROR:", error)
 
                 DispatchQueue.main.async {
-                    pdfs[index].status = "Error: \(error.localizedDescription)"
+
+                    pdfs[index].status =
+                        "Error: \(error.localizedDescription)"
+
                     pdfs[index].progress = 0
                 }
 
@@ -361,56 +387,121 @@ struct ContentView: View {
             }
 
             task.waitUntilExit()
-            
-            let errorData = errorPipe.fileHandleForReading.readDataToEndOfFile()
 
-            if let errorOutput = String(data: errorData,
-                                        encoding: .utf8) {
+            let errorData =
+                errorPipe.fileHandleForReading
+                    .readDataToEndOfFile()
+
+            if let errorOutput =
+                String(data: errorData,
+                       encoding: .utf8) {
 
                 print("GS ERROR:", errorOutput)
             }
-            
-            print("Termination Status:", task.terminationStatus)
-            
-            if overwriteExisting && task.terminationStatus == 0 {
 
-                do {
+            print("Termination Status:",
+                  task.terminationStatus)
 
-                    try FileManager.default.removeItem(at: inputURL)
-
-                    try FileManager.default.moveItem(at: outputURL,
-                                                     to: finalURL)
-
-                } catch {
-
-                    DispatchQueue.main.async {
-                        pdfs[index].status = "Replace failed"
-                        pdfs[index].progress = 0
-                    }
-
-                    return
-                }
-            }
+            // =========================================
+            // SUCCESS
+            // =========================================
 
             if task.terminationStatus == 0 {
 
+                // =====================================
+                // REAL PDF OVERWRITE
+                // =====================================
+
+                if allowOverwrite {
+
+                    do {
+
+                        let backupURL =
+                            finalURL.appendingPathExtension(
+                                "backup"
+                            )
+
+                        try? FileManager.default
+                            .removeItem(at: backupURL)
+
+                        try FileManager.default.copyItem(
+                            at: finalURL,
+                            to: backupURL
+                        )
+
+                        try FileManager.default
+                            .removeItem(at: finalURL)
+
+                        try FileManager.default.moveItem(
+                            at: outputURL,
+                            to: finalURL
+                        )
+
+                        try? FileManager.default
+                            .removeItem(at: backupURL)
+
+                        // restore modified date
+                        if let modifiedDate =
+                            originalModifiedDate {
+
+                            try? FileManager.default
+                                .setAttributes(
+                                    [.modificationDate:
+                                        modifiedDate],
+                                    ofItemAtPath:
+                                        finalURL.path
+                                )
+                        }
+
+                    } catch {
+
+                        DispatchQueue.main.async {
+
+                            pdfs[index].status =
+                                "Overwrite failed"
+
+                            pdfs[index].progress = 0
+                        }
+
+                        return
+                    }
+                }
+
+                // =====================================
+                // NON OVERWRITE PDF
+                // =====================================
+
+                else {
+
+                    // preserve date ONLY for real PDF
+                    if isRealPDF,
+                       let modifiedDate =
+                        originalModifiedDate {
+
+                        try? FileManager.default
+                            .setAttributes(
+                                [.modificationDate:
+                                    modifiedDate],
+                                ofItemAtPath:
+                                    finalURL.path
+                            )
+                    }
+                }
+
+                // =====================================
+                // DELETE TEMP FILE
+                // =====================================
+
                 if pdfs[index].isTemporary {
 
-                    DispatchQueue.global().asyncAfter(deadline: .now() + 1) {
-
-                        try? FileManager.default.removeItem(at: inputURL)
-                    }
-
-                } else if let modifiedDate = originalModifiedDate {
-
-                    try? FileManager.default.setAttributes(
-                        [.modificationDate: modifiedDate],
-                        ofItemAtPath: finalURL.path
-                    )
+                    try? FileManager.default
+                        .removeItem(at: inputURL)
                 }
 
                 DispatchQueue.main.async {
+
                     pdfs[index].progress = 1.0
+
                     pdfs[index].status =
                         "Finished → \(finalURL.lastPathComponent)"
                 }
@@ -418,7 +509,10 @@ struct ContentView: View {
             } else {
 
                 DispatchQueue.main.async {
-                    pdfs[index].status = "Ghostscript failed"
+
+                    pdfs[index].status =
+                        "Ghostscript failed"
+
                     pdfs[index].progress = 0
                 }
             }
