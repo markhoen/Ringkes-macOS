@@ -39,7 +39,7 @@ Ikon aplikasi RINGKES memadukan elemen **Blangkon Jawa** dan **Tumpukan Dokumen*
 ## 🚀 Cara Instalasi & Penggunaan
 
 ### Kebutuhan Sistem
-* macOS 14.0 (Sonoma) atau versi yang lebih baru
+* macOS 13 (Sequoia) atau versi yang lebih baru.
 
 ### Cara Penggunaan
 1. Unduh rilis terbaru aplikasi di halaman **Releases**.
