@@ -323,13 +323,12 @@ struct ContentView: View {
 
             let task = Process()
 
-            guard let gsPath =
-                Bundle.main.path(
-                    forResource: "gs",
-                    ofType: nil
-                ) else {
+            let gsPath = actualGhostscriptPath
+
+            if gsPath.isEmpty {
 
                 DispatchQueue.main.async {
+
                     pdfs[index].status =
                         "Ghostscript not found"
 
@@ -520,6 +519,10 @@ struct ContentView: View {
     }
     func checkGhostscript() {
 
+        // ================================
+        // CHECK HOMEBREW
+        // ================================
+
         let possibleBrewPaths = [
             "/opt/homebrew/bin/brew",
             "/usr/local/bin/brew"
@@ -529,37 +532,102 @@ struct ContentView: View {
             FileManager.default.fileExists(atPath: $0)
         }
 
-        if let embeddedGS = Bundle.main.path(forResource: "gs",
-                                             ofType: nil) {
+        // ================================
+        // DETECT ARCHITECTURE
+        // ================================
+
+        let arch = currentArchitecture()
+
+        print("Current Arch:", arch)
+
+        // ================================
+        // PRIORITY 1:
+        // EMBEDDED GS
+        // ================================
+
+        var embeddedName = ""
+
+        if arch == "arm64" {
+
+            embeddedName = "gs-arm64"
+
+        } else if arch == "x86_64" {
+
+            embeddedName = "gs-x86_64"
+        }
+
+        if let embeddedGS =
+            Bundle.main.path(
+                forResource: embeddedName,
+                ofType: nil
+            ) {
 
             ghostscriptAvailable = true
+
             usingEmbeddedGhostscript = true
-            ghostscriptPath = "Embedded Ghostscript"
+
             actualGhostscriptPath = embeddedGS
+
+            ghostscriptPath =
+                "Embedded \(arch)"
+
+            print("Using EMBEDDED GS:",
+                  embeddedGS)
 
             return
         }
 
-        let possibleGSPaths = [
+        // ================================
+        // PRIORITY 2:
+        // SYSTEM GS
+        // ================================
+
+        let systemGSPaths = [
             "/opt/homebrew/bin/gs",
-            "/usr/local/bin/gs"
+            "/usr/local/bin/gs",
+            "/opt/local/bin/gs"
         ]
 
-        if let foundGS = possibleGSPaths.first(where: {
+        if let foundGS = systemGSPaths.first(where: {
             FileManager.default.fileExists(atPath: $0)
         }) {
 
             ghostscriptAvailable = true
+
             usingEmbeddedGhostscript = false
-            ghostscriptPath = foundGS
+
             actualGhostscriptPath = foundGS
 
-        } else {
+            ghostscriptPath =
+                "System GS"
 
-            ghostscriptAvailable = false
-            ghostscriptPath = "Ghostscript not found"
-            showGhostscriptAlert = true
+            print("Using SYSTEM GS:",
+                  foundGS)
+
+            return
         }
+
+        // ================================
+        // GS NOT FOUND
+        // ================================
+
+        ghostscriptAvailable = false
+
+        ghostscriptPath =
+            "Ghostscript not found"
+
+        showGhostscriptAlert = true
+    }
+    
+    func currentArchitecture() -> String {
+
+        #if arch(arm64)
+        return "arm64"
+        #elseif arch(x86_64)
+        return "x86_64"
+        #else
+        return "unknown"
+        #endif
     }
 }
 
