@@ -34,24 +34,21 @@ Ikon aplikasi RINGKES memadukan elemen **Blangkon Jawa** dan **Tumpukan Dokumen*
 * **Bahasa/Framework:** SwiftUI
 * **Library Kompresi:** Ghostscript
 
-* ## 🛠️ Windows
-* **Platform:** Windows
-* **Bahasa/Framework:** .Net, C
-* **Library Kompresi:** Ghostscript
-
 ---
 
 ## 🚀 Cara Instalasi & Penggunaan
 
 ### Kebutuhan Sistem
-* macOS 14.0 (Sonoma) atau versi yang lebih baru.
-* Windows 10 atau yang lebih baru.
+* macOS 14.0 (Sonoma) atau versi yang lebih baru
 
 ### Cara Penggunaan
 1. Unduh rilis terbaru aplikasi di halaman **Releases**.
-2. Buka berkas `.dmg` atau jalankan aplikasi **RINGKES** (macOS), buka berkas `.zip` dan jalankan setup (Windows) .
-3. Tarik (*drag*) file PDF yang ingin Anda kompres, lalu letakkan (*drop*) ke dalam jendela aplikasi.
-4. Tunggu beberapa saat, dan file PDF Anda yang baru yang lebih ringkas siap digunakan!
+2. Buka berkas `.dmg` atau jalankan aplikasi **RINGKES** (macOS).
+3. Apabila muncul "Apple could not verify "Ringkes" is free of malware", klik saja done.
+4. Masuk ke System Settings -> Privacy & Security, geser kebawah, pada Security "Ringkes was blocked to protect yout Mac". klik Open Anyway, lalu Open Anyway lagi, kemudian masukkan password Mac anda dan klik Ok.
+5. Window Aplikasi "Ringkes" akan terbuka.
+6. Tarik (*drag*) file PDF yang ingin Anda kompres, lalu letakkan (*drop*) ke dalam jendela aplikasi.
+7. Tunggu beberapa saat, dan file PDF Anda yang baru yang lebih ringkas siap digunakan!
 
 ---
 
