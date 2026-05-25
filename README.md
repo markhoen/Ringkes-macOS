@@ -30,7 +30,7 @@ Ikon aplikasi RINGKES memadukan elemen **Blangkon Jawa** dan **Tumpukan Dokumen*
 ## 🛠️ Teknologi yang Digunakan
 
 ## 🛠️ macOS
-* **Platform:** macOS
+* **Platform:** macOS (Intel ataupun M Series)
 * **Bahasa/Framework:** SwiftUI
 * **Library Kompresi:** Ghostscript
 
